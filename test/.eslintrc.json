@@ -1,0 +1,7 @@
+{
+    "rules": {
+        "arrow-parens": "off",
+        "space-before-function-paren": "off",
+        "import/no-extraneous-dependencies": "off"
+    }
+}
