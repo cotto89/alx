@@ -5,9 +5,11 @@ const ava = require('gulp-ava');
 const notify = require('gulp-notify');
 const cached = require('gulp-cached');
 const env = require('gulp-process-env');
+const del = require('del');
 
 const PATH = {
-    test: 'test/**/**.test.js'
+    test: 'test/**/**.test.js',
+    bundle: 'docs/example/**/bundle.**'
 };
 
 const noticeError = (err) => {
@@ -19,4 +21,8 @@ gulp.task('test', () => gulp.src(PATH.test)
     .pipe(cached('ava'))
     .pipe(plumber(noticeError))
     .pipe(ava())
-).watch(PATH.test, ['test']);
+);
+
+gulp.task('watch:test', ['test'], () => gulp.watch(PATH.test, ['test']));
+
+gulp.task('clean', () => del([PATH.bundle]));
