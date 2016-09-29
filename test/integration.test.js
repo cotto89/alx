@@ -132,7 +132,7 @@ test('dsipatch action on planMix', async t => {
     await Promise.resolve().then(() => {
         /* correct status */
         t.deepEqual(queue[0], [
-            { counterA: { count: 1 }, counterB: { count: 2 }, a: { b: true } }
+            { counterA: { count: 1 }, counterB: { count: 2 }, a: { b: false } }
         ]);
 
         /* immutable update */

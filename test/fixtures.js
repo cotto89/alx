@@ -102,7 +102,8 @@ export const planMix = () => {
     }));
 
     const mixSpy = sinon.spy((state, action, status) => ({
-        counterB: { count: status.counterB.count + action.count + 1 }
+        counterB: { count: status.counterB.count + action.count + 1 },
+        a: { b: false }
     }));
 
     const plan = () => ({
