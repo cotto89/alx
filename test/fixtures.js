@@ -1,117 +1,68 @@
 import sinon from 'sinon';
+import compose from './../lib/compose';
 
-export const INCREMENT_COUNT = 'INCREMENT_COUNT';
-export const DECREMENT_COUNT = 'DECREMENT_COUNT';
-
-/* status */
 export const initialStatus = () => ({
     counterA: { count: 0 },
     counterB: { count: 0 },
-    a: { b: true }
+    counterC: { count: 0 }
 });
 
-/* action */
-export const increment = (count = 1) => ({
-    type: INCREMENT_COUNT,
-    count
+/* component */
+export const countUpByReducer = compose('COUNT_UP', {
+    action: sinon.spy((count = 1) => ({ count })),
+    reducer: sinon.spy(({ counterA, counterB, counterC }, payload) => ({
+        counterA: { count: counterA.count + payload.count },
+        counterB: { count: (counterB.count + payload.count) * 10 },
+        counterC
+    }))
 });
 
-export const asyncDecrement = (count = 1) => Promise.resolve({
-    type: DECREMENT_COUNT,
-    count
+export const countUpByReducers = compose('COUNT_UP', {
+    action: (count = 1) => ({ count }),
+    reducers: {
+        counterA: sinon.spy(({ count }, payload) => ({
+            count: count + payload.count
+        })),
+        counterB: sinon.spy(({ count }, payload) => ({
+            count: (count + payload.count) * 10
+        })),
+        counterC: sinon.spy(({ count }, payload) => ({
+            count: (count + payload.count) * 100
+        }))
+    }
 });
 
-export const actions = { increment, asyncDecrement };
+export const countUpByMix = compose('COUNT_UP', {
+    action: (count = 1) => ({ count }),
+    reducer: (status, payload) => {
+        const { counterA, counterB, counterC } = status;
+        return {
+            counterA: { count: counterA.count + payload.count },
+            counterB,
+            counterC
+        };
+    },
+    reducers: {
+        counterB: ({ count }, payload) => ({
+            count: (count + payload.count) * 10
+        })
+    }
+});
 
+export const countUpByAsyncAction = compose({
+    action: (count = 1) => new Promise(resolve => {
+        resolve({ count });
+    }),
+    reducer: (status, payload) => {
+        const { counterA, counterB, counterC } = status;
+        return {
+            counterA: { count: counterA.count + payload.count },
+            counterB,
+            counterC
+        };
+    }
+});
 
-/* actionPlan */
-export const planSimple = () => {
-    const counterASpy = sinon.spy((state, action) => ({
-        count: state.count + action.count
-    }));
-
-    const counterBSpy = sinon.spy((state, action) => ({
-        count: state.count + action.count + 1
-    }));
-
-    const plan = () => ({
-        [INCREMENT_COUNT]: {
-            counterA: counterASpy,
-            counterB: counterBSpy
-        },
-
-        [DECREMENT_COUNT]: {
-            counterA: counterASpy,
-            counterB: counterBSpy
-        }
-    });
-
-    return { plan: plan(), counterASpy, counterBSpy };
-};
-
-
-export const planWithNext = () => {
-    const counterASpy = sinon.spy((state, action) => ({
-        count: state.count + action.count
-    }));
-
-    const counterBSpy = sinon.spy((state, action) => ({
-        count: state.count - action.count
-    }));
-
-    const $nextSpy = sinon.spy((dispatch, action) => Promise.resolve()
-        .then(() => dispatch(asyncDecrement(action.count))));
-
-    const plan = () => ({
-        [INCREMENT_COUNT]: {
-            counterA: counterASpy,
-            $next: $nextSpy
-        },
-
-        [DECREMENT_COUNT]: {
-            counterB: counterBSpy
-        }
-    });
-
-    return { plan: plan(), counterASpy, counterBSpy, $nextSpy };
-};
-
-export const planWithOrder = () => {
-    const counterASpy = sinon.spy((state, action) => ({
-        count: state.count + action.count
-    }));
-
-    const counterBSpy = sinon.spy((state, action) => ({
-        count: state.count + action.count + 1
-    }));
-
-    const plan = () => ({
-        [INCREMENT_COUNT]: {
-            order: ['counterB', 'counterA'],
-            counterA: counterASpy,
-            counterB: counterBSpy
-        }
-    });
-
-    return { plan: plan(), counterASpy, counterBSpy };
-};
-
-export const planMix = () => {
-    const counterASpy = sinon.spy((state, action) => ({
-        count: state.count + action.count
-    }));
-
-    const mixSpy = sinon.spy((state, action, status) => ({
-        counterB: { count: status.counterB.count + action.count + 1 },
-        a: { b: false }
-    }));
-
-    const plan = () => ({
-        [INCREMENT_COUNT]: {
-            counterA: counterASpy,
-            mix: mixSpy
-        }
-    });
-
-    return { plan: plan(), counterASpy, mixSpy };
-};
+export const invalidAction = compose({
+    action: () => 'typeError'
+});

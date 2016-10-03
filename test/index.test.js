@@ -1,7 +1,7 @@
 import test from 'ava';
-import { AlxStore, Dispatcher } from './../index';
+import { compose, ActionEmitter } from './../index';
 
 test('distribute module', t => {
-    t.true(AlxStore.name === 'AlxStore');
-    t.true(Dispatcher.name === 'Dispatcher');
+    t.is(ActionEmitter.name, 'ActionEmitter');
+    t.is(compose.name, 'compose');
 });

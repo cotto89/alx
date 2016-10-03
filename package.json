@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev:example": "webpack-dev-server",
-    "build:example": "NODE_ENV=production webpack -p",
+    "build:example": "gulp clean && NODE_ENV=production webpack -p",
     "test": "NODE_ENV=test ava --verbose",
     "clean": "gulp clean"
   },
@@ -69,5 +69,8 @@
     "webpack-dev-server": "^1.15.1",
     "webpack-merge": "^0.14.1",
     "webpack-notifier": "^1.4.1"
+  },
+  "dependencies": {
+    "lodash.isplainobject": "^4.0.6"
   }
 }

@@ -1,7 +1,7 @@
-const AlxStore = require('./lib/AlxStore');
-const Dispatcher = require('./lib/Dispatcher');
+const compose = require('./lib/compose.js');
+const ActionEmitter = require('./lib/ActionEmitter.js');
 
 module.exports = {
-    AlxStore,
-    Dispatcher
+    compose,
+    ActionEmitter
 };
