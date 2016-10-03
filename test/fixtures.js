@@ -66,3 +66,9 @@ export const countUpByAsyncAction = compose({
 export const invalidAction = compose({
     action: () => 'typeError'
 });
+
+export const blankAction = compose('COUNT_UP', {
+    reducer: (status) => Object.assign({}, status, {
+        counterA: { count: status.counterA.count + 1 }
+    })
+});

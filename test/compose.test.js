@@ -6,7 +6,8 @@ import {
     countUpByReducers,
     countUpByMix,
     countUpByAsyncAction,
-    invalidAction
+    invalidAction,
+    blankAction
 } from './fixtures';
 
 
@@ -105,4 +106,19 @@ test('typeError of payload', t => {
     const message = 'Action return typeError as payload. ' +
         'Payload must be PlainObject.';
     t.throws(invalidAction(), message);
+});
+
+test('blankAction', async t => {
+    const { reduce, payload } = await blankAction();
+    const nextStatus = reduce(initialStatus());
+
+    t.deepEqual(nextStatus, {
+        counterA: { count: 1 },
+        counterB: { count: 0 },
+        counterC: { count: 0 }
+    });
+
+    t.deepEqual(payload, {
+        $type: 'COUNT_UP'
+    });
 });
