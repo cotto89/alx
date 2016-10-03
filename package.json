@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev:example": "webpack-dev-server",
-    "build:example": "NODE_ENV=production webpack -p",
+    "build:example": "gulp clean && NODE_ENV=production webpack -p",
     "test": "NODE_ENV=test ava --verbose",
     "clean": "gulp clean"
   },
