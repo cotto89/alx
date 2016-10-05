@@ -1,48 +1,47 @@
 import test from 'ava';
 import sinon from 'sinon';
 import ActionEmitter from './../lib/ActionEmitter';
+import UseCase from './../lib/UseCase';
 import { countUpByReducer, invalidAction } from './fixtures';
 
 let emitter, emit;
+const event = 'USECASE:ACTION';
 
 test.beforeEach(() => {
     emitter = new ActionEmitter();
     emit = emitter.emit.bind(emitter);
 });
 
-test('#emit on action', t => {
-    t.plan(6);
+test("#emit on 'USECASE:ACTION'", async t => {
+    t.plan(3);
 
-    /* #emit() can emit 'action' event and have actionHander result */
-    emitter.on('action', ({ reduce, next, payload }) => {
-        t.is(typeof reduce, 'function');
-        t.is(typeof next, 'undefined');
-        t.deepEqual(payload, {
+    /* Execute usecase.exec() and publish usecase on 'USECASE:ACTION' */
+    emitter.on(event, (usecase) => {
+        t.true(usecase instanceof UseCase);
+        t.deepEqual(usecase.payload, {
             $type: 'COUNT_UP',
             count: 1
         });
     });
 
-    /* #emit() return promise */
-    return emit(countUpByReducer).then(({ reduce, next, payload }) => {
-        t.is(typeof reduce, 'function');
-        t.is(typeof next, 'undefined');
-        t.deepEqual(payload, {
+    /* #emit() return promise having usecase */
+    await emit(countUpByReducer).then((usecase) => {
+        t.deepEqual(usecase.payload, {
             $type: 'COUNT_UP',
             count: 1
         });
     });
 });
 
-test('#emit on error', async t => {
+test("#emit on 'ERROR'", async t => {
     t.plan(2);
 
     const spyHandler = sinon.spy();
     const message = 'Action return typeError as payload. ' +
         'Payload must be PlainObject.';
 
-    emitter.on('action', spyHandler);
-    emitter.on('error', (err) => {
+    emitter.on(event, spyHandler);
+    emitter.on('ERROR', (err) => {
         t.is(err.message, message);
     });
 

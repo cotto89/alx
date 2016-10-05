@@ -22,9 +22,9 @@ test('counter', async t => {
     const emit = emitter.emit.bind(emitter);
 
 
-    emitter.on('action', (({ reduce }) => {
-        status = reduce(status);
-    }));
+    emitter.on('USECASE:ACTION', (usecase) => {
+        status = usecase.reduce(status);
+    });
 
     await emit(countUp, 10);
     await emit(countUp, 10);
