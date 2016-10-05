@@ -1,13 +1,15 @@
 {
   "name": "alx",
-  "version": "0.0.1",
   "description": "flux framework",
-  "main": "index.js",
-  "scripts": {
-    "dev:example": "webpack-dev-server",
-    "build:example": "gulp clean && NODE_ENV=production webpack -p",
-    "test": "NODE_ENV=test ava --verbose",
-    "clean": "gulp clean"
+  "version": "0.0.1",
+  "author": "cotto",
+  "ava": {
+    "files": [
+      "test/**/*.test.js"
+    ],
+    "require": [
+      "babel-register"
+    ]
   },
   "babel": {
     "presets": [
@@ -18,39 +20,33 @@
       "transform-runtime"
     ]
   },
-  "ava": {
-    "files": [
-      "test/**/*.test.js"
-    ],
-    "require": [
-      "babel-register"
-    ]
+  "bugs": {
+    "url": "https://github.com/cotto89/alx/issues"
   },
-  "keywords": [
-    "flux"
-  ],
-  "author": "",
-  "license": "MIT",
+  "dependencies": {
+    "lodash.isplainobject": "^4.0.6",
+    "lodash.merge": "^4.6.0"
+  },
   "devDependencies": {
     "autoprefixer": "^6.5.0",
     "ava": "^0.16.0",
-    "babel-cli": "^6.14.0",
-    "babel-core": "^6.14.0",
+    "babel-cli": "^6.16.0",
+    "babel-core": "^6.17.0",
     "babel-loader": "^6.2.5",
     "babel-plugin-transform-runtime": "^6.15.0",
     "babel-plugin-unassert": "^2.1.1",
-    "babel-preset-es2015": "^6.14.0",
+    "babel-preset-es2015": "^6.16.0",
     "babel-preset-jsdoc-to-assert": "^4.0.0",
     "babel-preset-power-assert": "^1.0.0",
     "babel-preset-react": "^6.16.0",
-    "babel-register": "^6.14.0",
+    "babel-register": "^6.16.3",
     "css-loader": "^0.25.0",
     "del": "^2.2.2",
-    "eslint": "^3.4.0",
+    "eslint": "^3.7.1",
     "eslint-config-airbnb": "^12.0.0",
-    "eslint-plugin-import": "^1.14.0",
-    "eslint-plugin-jsx-a11y": "^2.2.1",
-    "eslint-plugin-react": "^6.2.0",
+    "eslint-plugin-import": "^2.0.0",
+    "eslint-plugin-jsx-a11y": "^2.2.2",
+    "eslint-plugin-react": "^6.3.0",
     "extract-text-webpack-plugin": "^1.0.1",
     "gulp": "^3.9.1",
     "gulp-ava": "^0.14.1",
@@ -58,7 +54,7 @@
     "gulp-notify": "^2.2.0",
     "gulp-plumber": "^1.1.0",
     "gulp-process-env": "0.0.2",
-    "node-sass": "^3.10.0",
+    "node-sass": "^3.10.1",
     "postcss-loader": "^0.13.0",
     "power-assert": "^1.4.1",
     "react": "^15.3.2",
@@ -66,12 +62,27 @@
     "sass-loader": "^4.0.2",
     "sinon": "^1.17.6",
     "webpack": "^1.13.2",
-    "webpack-dev-server": "^1.15.1",
+    "webpack-dev-server": "^1.16.1",
     "webpack-merge": "^0.14.1",
     "webpack-notifier": "^1.4.1"
   },
-  "dependencies": {
-    "lodash.isplainobject": "^4.0.6",
-    "lodash.merge": "^4.6.0"
+  "files": [
+    "index.js",
+    "lib"
+  ],
+  "keywords": [
+    "flux"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cotto89/alx.git"
+  },
+  "scripts": {
+    "build:example": "gulp clean && NODE_ENV=production webpack -p",
+    "clean": "gulp clean",
+    "dev:example": "webpack-dev-server",
+    "test": "NODE_ENV=test ava --verbose"
   }
 }
