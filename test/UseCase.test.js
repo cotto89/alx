@@ -158,10 +158,12 @@ test('#link', async t => {
     const gen2 = () => {};
 
     const withChain = usecase.link(gen1).link(gen2);
+    const withChain2 = usecase.link(gen1, gen2);
 
     // clone and return new UseCase includes chain
     t.notDeepEqual(usecase, withChain);
     t.deepEqual(withChain.chain, [gen1, gen2]);
+    t.deepEqual(withChain2.chain, [gen1, gen2]);
 });
 
 
