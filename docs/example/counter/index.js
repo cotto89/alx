@@ -1,24 +1,28 @@
 /* eslint-disable import/no-extraneous-dependencies,
 react/jsx-filename-extension,
-no-console
+no-shadow,
+no-console,
+no-use-before-define
  */
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { ActionEmitter, compose } from './../../../index';
 
+/* ActionEmitter */
 const actionEmitter = new ActionEmitter();
 const emit = actionEmitter.emit.bind(actionEmitter);
 
-/* component logic */
+/* usecase */
+const rest = compose('RESET', {
+    reducer: () => ({ counter: { count: 0 } })
+});
+
 const increment = compose('INCREMENT', {
     action: (count = 1) => ({ count }),
     reducers: {
         counter: (state, payload) => ({ count: state.count + payload.count })
-    },
-    next(status, payload) {
-        console.log(status, payload);
     }
-});
+}).link(resetChain);
 
 const decrement = compose('DECREMENT', {
     // You can return Promise on action
@@ -26,7 +30,17 @@ const decrement = compose('DECREMENT', {
     reducer: (status, payload) => ({
         counter: { count: status.counter.count - payload.count }
     })
-});
+}).link(resetChain);
+
+
+/* Chain */
+function* resetChain(getStatus, emit) {
+    const count = getStatus('counter').count;
+    if (count > 100 || count < -100) {
+        yield emit(rest);
+    }
+}
+
 
 /* View */
 class Counter extends Component {
@@ -36,6 +50,11 @@ class Counter extends Component {
             counter: { count: 0 }
         };
 
+        this.getStatus = (context) => {
+            if (context) return this.state[context];
+            return this.state;
+        };
+
         this.up = () => emit(increment);
         this.down = () => emit(decrement);
         this.up10 = () => emit(increment, 10);
@@ -43,9 +62,14 @@ class Counter extends Component {
     }
 
     componentDidMount() {
-        actionEmitter.on('action', ({ reduce, next, payload }) => {
-            this.setState(reduce);
-            next && next(this.state, payload);
+        actionEmitter.on('USECASE:ACTION', (usecase) => {
+            this.setState(status => usecase.reduce(status));
+            console.log(usecase.payload, this.state);
+            usecase.next(this.getStatus, emit);
+        });
+
+        actionEmitter.on('ERROR', (err) => {
+            console.error(err);
         });
     }
 

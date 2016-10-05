@@ -1,7 +1,8 @@
-const compose = require('./lib/compose.js');
+const UseCase = require('./lib/UseCase.js');
 const ActionEmitter = require('./lib/ActionEmitter.js');
 
 module.exports = {
-    compose,
+    compose: UseCase.compose,
+    UseCase,
     ActionEmitter
 };

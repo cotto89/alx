@@ -1,5 +1,7 @@
 import sinon from 'sinon';
-import compose from './../lib/compose';
+import UseCase from './../lib/UseCase';
+
+const { compose } = UseCase;
 
 export const initialStatus = () => ({
     counterA: { count: 0 },
@@ -7,8 +9,8 @@ export const initialStatus = () => ({
     counterC: { count: 0 }
 });
 
-/* component */
-export const countUpByReducer = compose('COUNT_UP', {
+/* usecase */
+export const countUpByReducer = new UseCase('COUNT_UP', {
     action: sinon.spy((count = 1) => ({ count })),
     reducer: sinon.spy(({ counterA, counterB, counterC }, payload) => ({
         counterA: { count: counterA.count + payload.count },
