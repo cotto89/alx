@@ -20,48 +20,38 @@ test('#constructor', async t => {
     // withType
     t.is(withType.$type, 'withType');
     t.deepEqual(withType.chain, []);
+    const payloadWithType = await withType.exec();
+    t.deepEqual(payloadWithType, { $type: 'withType' });
+
     // withoutType
     t.is(withoutType.$type, undefined);
     t.deepEqual(withoutType.chain, []);
+    const payloadWithoutType = await withoutType.exec();
+    t.deepEqual(payloadWithoutType, { $type: undefined });
+
     // withChainOfFunc
     t.deepEqual(withChainOfFunc.chain, [chainFn]);
     // withChainOfArray
     t.deepEqual(withChainOfArray.chain, [chainFn]);
 });
 
-test('usecase  with type', async t => {
-    const usecase = new UseCase('DEMO');
-    t.is(usecase.$type, 'DEMO');
-    const { payload } = await usecase.exec();
-    t.deepEqual(payload, { $type: 'DEMO' });
-});
-
-
-test('usecase without type', async t => {
-    const usecase = new UseCase();
-    t.is(usecase.$type, undefined);
-    const { payload } = await usecase.exec();
-    t.deepEqual(payload, { $type: undefined });
-});
 
 test('UseCase.clone', async t => {
+    const actionB = () => ({});
     const usecase = new UseCase('demo');
-    const clonedUseCase = UseCase.clone(usecase, { $type: 'cloned' });
+    const clonedUseCase = UseCase.clone(usecase, { $type: 'cloned', action: actionB });
 
     t.is(clonedUseCase.$type, 'cloned');
-
-    await clonedUseCase.exec();
-
-    t.deepEqual(clonedUseCase.payload, { $type: 'cloned' });
-    t.deepEqual(usecase.payload, {});
+    t.not(usecase.action, clonedUseCase.action);
 });
 
 test('countUpByReducer', async t => {
-    const usecase = await countUpByReducer.exec();
+    const usecase = countUpByReducer;
+    const payload = await usecase.exec();
     const reducer = usecase.reducer;
 
     // payload
-    t.deepEqual(usecase.payload, {
+    t.deepEqual(payload, {
         $type: 'COUNT_UP',
         count: 1
     });
@@ -72,7 +62,7 @@ test('countUpByReducer', async t => {
 
     // reducer should return nextStatus;
     const status = initialStatus();
-    const nextStatus = usecase.reduce(status);
+    const nextStatus = usecase.reduce(status, payload);
     t.deepEqual(nextStatus, {
         counterA: { count: 1 },
         counterB: { count: 10 },
@@ -80,19 +70,19 @@ test('countUpByReducer', async t => {
     });
 
     // reducer is passed status and payload
-    t.true(reducer.calledWithExactly(status, usecase.payload));
+    t.true(reducer.calledWithExactly(status, payload));
 });
 
 
 test('countUpByReducers', async t => {
-    const usecase = await countUpByReducers.exec();
-    const { payload } = usecase;
+    const usecase = countUpByReducers;
+    const payload = await usecase.exec();
 
     const { counterA, counterB, counterC } = usecase.reducers;
 
     // reducer should return nextStatus;
     const status = initialStatus();
-    const nextStatus = usecase.reduce(status);
+    const nextStatus = usecase.reduce(status, payload);
     t.deepEqual(nextStatus, {
         counterA: { count: 1 },
         counterB: { count: 10 },
@@ -106,11 +96,12 @@ test('countUpByReducers', async t => {
 });
 
 test('countUpByMix', async t => {
-    const usecase = await countUpByMix.exec();
+    const usecase = countUpByMix;
+    const payload = await usecase.exec();
 
     // reducer should return nextStatus;
     const status = initialStatus();
-    const nextStatus = usecase.reduce(status);
+    const nextStatus = usecase.reduce(status, payload);
     t.deepEqual(nextStatus, {
         counterA: { count: 1 },
         counterB: { count: 10 },
@@ -119,10 +110,11 @@ test('countUpByMix', async t => {
 });
 
 test('countUpByAsyncAction', async t => {
-    const usecase = await countUpByAsyncAction.exec();
+    const usecase = countUpByAsyncAction;
+    const payload = await usecase.exec();
 
     // reducer should return nextStatus;
-    const nextStatus = usecase.reduce(initialStatus());
+    const nextStatus = usecase.reduce(initialStatus(), payload);
     t.deepEqual(nextStatus, {
         counterA: { count: 1 },
         counterB: { count: 0 },
@@ -137,8 +129,9 @@ test('typeError of payload', t => {
 });
 
 test('blankAction', async t => {
-    const usecase = await blankAction.exec();
-    const nextStatus = usecase.reduce(initialStatus());
+    const usecase = blankAction;
+    const payload = await usecase.exec();
+    const nextStatus = usecase.reduce(initialStatus(), payload);
 
     t.deepEqual(nextStatus, {
         counterA: { count: 1 },
@@ -146,7 +139,7 @@ test('blankAction', async t => {
         counterC: { count: 0 }
     });
 
-    t.deepEqual(usecase.payload, {
+    t.deepEqual(payload, {
         $type: 'COUNT_UP'
     });
 });
@@ -172,13 +165,13 @@ test('#next', async t => {
 
     const queue = [];
 
-    function* c1(getStatus, emit, payload) {
+    function* c1(payload, getStatus, emit) {
         t.deepEqual(payload, { $type: 'withChain', count: 1 });
         const n1 = yield queue.push(payload.count);
         yield queue.push(n1 + 1);
     }
 
-    function* c2(getStatus, emit, payload) {
+    function* c2(payload, getStatus, emit) {
         t.deepEqual(payload, { $type: 'withChain', count: 1 });
         const n3 = yield queue.push(payload.count + 2);
         yield queue.push(n3 + 1);
@@ -191,8 +184,8 @@ test('#next', async t => {
 
     t.is(usecaseChain.chain.length, 2);
 
-    await usecaseChain.exec();
-    await usecaseChain.next();
+    const payload = await usecaseChain.exec();
+    await usecaseChain.next(payload);
 
     await new Promise(resolve => {
         setTimeout(() => {

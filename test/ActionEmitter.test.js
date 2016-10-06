@@ -16,17 +16,17 @@ test("#emit on 'USECASE:ACTION'", async t => {
     t.plan(3);
 
     /* Execute usecase.exec() and publish usecase on 'USECASE:ACTION' */
-    emitter.on(event, (usecase) => {
+    emitter.on(event, (usecase, payload) => {
         t.true(usecase instanceof UseCase);
-        t.deepEqual(usecase.payload, {
+        t.deepEqual(payload, {
             $type: 'COUNT_UP',
             count: 1
         });
     });
 
     /* #emit() return promise having usecase */
-    await emit(countUpByReducer).then((usecase) => {
-        t.deepEqual(usecase.payload, {
+    await emit(countUpByReducer).then(({ payload }) => {
+        t.deepEqual(payload, {
             $type: 'COUNT_UP',
             count: 1
         });

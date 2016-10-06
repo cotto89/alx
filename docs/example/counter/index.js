@@ -13,16 +13,13 @@ const actionEmitter = new ActionEmitter();
 const emit = actionEmitter.emit.bind(actionEmitter);
 
 /* usecase */
-const rest = compose('RESET', {
-    reducer: () => ({ counter: { count: 0 } })
-});
-
 const increment = compose('INCREMENT', {
     action: (count = 1) => ({ count }),
     reducers: {
         counter: (state, payload) => ({ count: state.count + payload.count })
-    }
-}).link(resetChain);
+    },
+    chain: resetChain
+});
 
 const decrement = compose('DECREMENT', {
     // You can return Promise on action
@@ -32,12 +29,15 @@ const decrement = compose('DECREMENT', {
     })
 }).link(resetChain);
 
+const reset = compose('RESET', {
+    reducer: () => ({ counter: { count: 0 } })
+});
 
 /* Chain */
-function* resetChain(getStatus, emit) {
+function* resetChain(payload, getStatus, emit) {
     const count = getStatus('counter').count;
     if (count > 100 || count < -100) {
-        yield emit(rest);
+        yield emit(reset);
     }
 }
 
@@ -62,10 +62,10 @@ class Counter extends Component {
     }
 
     componentDidMount() {
-        actionEmitter.on('USECASE:ACTION', (usecase) => {
-            this.setState(status => usecase.reduce(status));
-            console.log(usecase.payload, this.state);
-            usecase.next(this.getStatus, emit);
+        actionEmitter.on('USECASE:ACTION', (usecase, payload) => {
+            this.setState(status => usecase.reduce(status, payload));
+            console.log(payload, this.state.counter);
+            usecase.next(payload, this.getStatus, emit);
         });
 
         actionEmitter.on('ERROR', (err) => {
