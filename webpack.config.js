@@ -19,16 +19,23 @@ let config = {
     module: {
         loaders: [
             {
-                test: /\.jsx?$/,
+                test: /\.tsx?$/,
                 exclude: /node_modules/,
-                loader: 'babel-loader',
-                query: { cacheDirectory: true }
+                loader: 'ts-loader',
             },
             {
                 test: /\.s?css$/,
                 loader: ExtractTextPlugin.extract('css!postcss!sass')
             }
         ]
+    },
+    ts: {
+        compilerOptions: {
+            "declaration": false
+        }
+    },
+    resolve: {
+        extensions: ['', '.webpack.js', '.web.js', '.ts', '.tsx', '.js']
     },
     postcss: [autoprefixer({ browsers: ['last 2 versions'] })],
     plugins: [

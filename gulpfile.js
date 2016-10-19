@@ -8,8 +8,10 @@ const env = require('gulp-process-env');
 const del = require('del');
 
 const PATH = {
-    test: 'test/**/**.test.js',
-    bundle: 'docs/example/**/bundle.**'
+    test: 'dist/test/**/*.test.js',
+    bundle: 'docs/example/**/bundle.**',
+    dist: 'dist',
+    compiled: 'test/compiled'
 };
 
 const noticeError = (err) => {
@@ -25,4 +27,4 @@ gulp.task('test', () => gulp.src(PATH.test)
 
 gulp.task('watch:test', ['test'], () => gulp.watch(PATH.test, ['test']));
 
-gulp.task('clean', () => del([PATH.bundle]));
+gulp.task('clean', () => del([PATH.bundle, PATH.dist, PATH.compiled]));
