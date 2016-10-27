@@ -21,7 +21,7 @@ let config = {
             {
                 test: /\.tsx?$/,
                 exclude: /node_modules/,
-                loader: 'ts-loader',
+                loader: 'babel?presets[]=es2015!ts'
             },
             {
                 test: /\.s?css$/,
@@ -57,7 +57,7 @@ if (isProd) {
     config = merge(config, {
         plugins: [
             new webpack.optimize.UglifyJsPlugin({
-                compress: { warnings: false }
+                compress: { warnings: false },
             }),
             new webpack.optimize.DedupePlugin(),
             new webpack.optimize.AggressiveMergingPlugin()
