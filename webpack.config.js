@@ -69,7 +69,7 @@ if (isProd) {
 const counterConf = () => {
     const base = path.join(process.cwd(), 'docs/example/counter/');
     return merge({}, config, {
-        entry: [path.join(base, 'index.js'), path.join(base, 'index.scss')],
+        entry: [path.join(base, 'index.tsx'), path.join(base, 'index.scss')],
         output: {
             path: base,
             filename: 'bundle.js'

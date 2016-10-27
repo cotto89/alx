@@ -17,6 +17,8 @@
   },
   "devDependencies": {
     "@types/node": "^6.0.46",
+    "@types/react": "^0.14.43",
+    "@types/react-dom": "^0.14.18",
     "@types/sinon": "^1.16.31",
     "autoprefixer": "^6.5.1",
     "ava": "^0.16.0",

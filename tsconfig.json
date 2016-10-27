@@ -9,6 +9,7 @@
             "dom",
             "es2017"
         ],
+        "jsx": "react",
         "allowSyntheticDefaultImports": false,
         "strictNullChecks": true,
         "noImplicitAny": true,
@@ -31,10 +32,10 @@
     "include": [
         "index.ts",
         "./types/*.d.ts",
-        "./lib/**/*.ts"
+        "./lib/**/*.ts",
+        "./docs/example/counter/*.tsx"
     ],
     "exclude": [
-        "node_modules",
-        "docs"
+        "node_modules"
     ]
 }
