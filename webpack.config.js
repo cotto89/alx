@@ -21,7 +21,7 @@ let config = {
             {
                 test: /\.tsx?$/,
                 exclude: /node_modules/,
-                loader: 'babel?presets[]=es2015!ts'
+                loader: 'babel!ts'
             },
             {
                 test: /\.s?css$/,
