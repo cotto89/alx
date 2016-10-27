@@ -1,6 +1,6 @@
 import { UseCase } from "./UseCase";
 
-export let EVENTS = {
+export const EVENTS = {
     ACTION: "USECASE:ACTION",
     ERROR: "ERROR",
 };
@@ -11,6 +11,12 @@ export class Dispatcher<TStatus> {
         "ERROR": Function[]
     };
 
+    /**
+     * Creates an instance of Dispatcher.
+     *
+     *
+     * @memberOf Dispatcher
+     */
     constructor() {
         this.listeners = {
             "USECASE:ACTION": [],
@@ -18,6 +24,15 @@ export class Dispatcher<TStatus> {
         };
     }
 
+    /**
+     * Register event listener
+     *
+     * @param {"USECASE:ACTION" | "ERROR"} event
+     * @param {Function} listener
+     * @returns {Function} unsubscribe
+     *
+     * @memberOf Dispatcher
+     */
     subscribe(event: "USECASE:ACTION", listener: (result: {
         usecase: UseCase<TStatus, any>,
         payload: any;
@@ -29,7 +44,7 @@ export class Dispatcher<TStatus> {
 
         listeners[event].push(listener);
 
-        const unsubscribe = () => {
+        return function unsubscribe() {
             const index = listeners[event].findIndex((target) => {
                 return target === listener;
             });
@@ -37,10 +52,17 @@ export class Dispatcher<TStatus> {
             listeners[event].splice(index, 1);
             return listener;
         };
-
-        return unsubscribe;
     }
 
+    /**
+     * Dispatch usecase and payload
+     *
+     * @template TPayload
+     * @param {*} actionResult
+     * @returns
+     *
+     * @memberOf Dispatcher
+     */
     dispatch<TPayload>(actionResult: any) {
         const listeners: { [event: string]: Function[] } = this.listeners;
         type ret = Promise<{

@@ -130,7 +130,7 @@
         // 判断迷ってる
         "interface-name": [
             true,
-            "always-prefix"
+            "never-prefix"
         ],
         "jsdoc-format": true,
         "new-parens": true,

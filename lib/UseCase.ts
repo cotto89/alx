@@ -1,17 +1,17 @@
 import merge = require("lodash.merge");
 
-export interface IChain {
+export type Chain = {
     (payload: any, getStatus: Function, dispach: Function): any;
 }
 
-export interface IUseCaseOptions<TStatus, TPayload> {
+export type UseCaseOptions<TStatus, TPayload> = {
     id?: string;
     action?: (...args: any[]) => any;
     reducer?: (status: TStatus, payload: TPayload) => TStatus;
     reducers?: {
         [context: string]: (state: TStatus, payload: TPayload) => Object;
     };
-    chain?: IChain | IChain[];
+    chain?: Chain | Chain[];
 }
 
 export class UseCase<TStatus, TPayload> {
@@ -23,14 +23,14 @@ export class UseCase<TStatus, TPayload> {
      * @template TStatus
      * @template TPayload
      * @param {UseCase<TStatus, TPayload>} usecase
-     * @param {...IUseCaseOptions<TStatus, TPayload>[]} options
+     * @param {...UseCaseOptions<TStatus, TPayload>[]} options
      * @returns {UseCase<TStatus, TPayload>}
      *
      * @memberOf UseCase
      */
     static clone<TStatus, TPayload>(
         usecase: UseCase<TStatus, TPayload>,
-        ...options: IUseCaseOptions<TStatus, TPayload>[]
+        ...options: UseCaseOptions<TStatus, TPayload>[]
     ): UseCase<TStatus, TPayload> {
         return merge(new UseCase<TStatus, TPayload>(), {}, usecase, ...options);
     }
@@ -41,19 +41,19 @@ export class UseCase<TStatus, TPayload> {
     reducers?: {
         [context: string]: (state: Object, payload: TPayload) => Object
     };
-    chain: IChain[];
+    chain: Chain[];
 
     /**
      * Creates an instance of UseCase.
      *
-     * @param {(string | IUseCaseOptions<TStatus, TPayload>)} [id]
-     * @param {IUseCaseOptions<TStatus, TPayload>} [options={}]
+     * @param {(string | UseCaseOptions<TStatus, TPayload>)} [id]
+     * @param {UseCaseOptions<TStatus, TPayload>} [options={}]
      *
      * @memberOf UseCase
      */
-    constructor(id?: string | IUseCaseOptions<TStatus, TPayload>, options: IUseCaseOptions<TStatus, TPayload> = {}) {
+    constructor(id?: string | UseCaseOptions<TStatus, TPayload>, options: UseCaseOptions<TStatus, TPayload> = {}) {
         const $id = typeof id === "string" ? id : undefined;
-        const $options = $id ? options : (id as IUseCaseOptions<TStatus, TPayload>) || {};
+        const $options = $id ? options : (id as UseCaseOptions<TStatus, TPayload>) || {};
 
         const { action, reducer, reducers, chain } = $options;
 
@@ -121,12 +121,12 @@ export class UseCase<TStatus, TPayload> {
     /**
      * Attach chain to target usecase
      *
-     * @param {...IChain[]} chain
+     * @param {...Chain[]} chain
      * @returns {UseCase<TStatus, TPayload>}
      *
      * @memberOf UseCase
      */
-    link(...chain: IChain[]): UseCase<TStatus, TPayload> {
+    link(...chain: Chain[]): UseCase<TStatus, TPayload> {
         return UseCase.clone(this, { chain: [...chain] });
     }
 
