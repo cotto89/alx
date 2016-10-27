@@ -16,9 +16,9 @@
     "lodash.merge": "^4.6.0"
   },
   "devDependencies": {
-    "@types/node": "^6.0.45",
+    "@types/node": "^6.0.46",
     "@types/sinon": "^1.16.31",
-    "autoprefixer": "^6.5.0",
+    "autoprefixer": "^6.5.1",
     "ava": "^0.16.0",
     "css-loader": "^0.25.0",
     "del": "^2.2.2",
@@ -37,11 +37,11 @@
     "rimraf": "^2.5.4",
     "sass-loader": "^4.0.2",
     "sinon": "^1.17.6",
-    "ts-loader": "^0.9.4",
+    "ts-loader": "^0.9.5",
     "tslint": "^3.15.1",
-    "typescript": "^2.0.3",
-    "webpack": "^1.13.2",
-    "webpack-dev-server": "^1.16.1",
+    "typescript": "^2.0.6",
+    "webpack": "^1.13.3",
+    "webpack-dev-server": "^1.16.2",
     "webpack-merge": "^0.15.0",
     "webpack-notifier": "^1.4.1"
   },
