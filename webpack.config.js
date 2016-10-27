@@ -19,16 +19,23 @@ let config = {
     module: {
         loaders: [
             {
-                test: /\.jsx?$/,
+                test: /\.tsx?$/,
                 exclude: /node_modules/,
-                loader: 'babel-loader',
-                query: { cacheDirectory: true }
+                loader: 'babel?presets[]=es2015!ts'
             },
             {
                 test: /\.s?css$/,
                 loader: ExtractTextPlugin.extract('css!postcss!sass')
             }
         ]
+    },
+    ts: {
+        compilerOptions: {
+            "declaration": false
+        }
+    },
+    resolve: {
+        extensions: ['', '.webpack.js', '.web.js', '.ts', '.tsx', '.js']
     },
     postcss: [autoprefixer({ browsers: ['last 2 versions'] })],
     plugins: [
@@ -50,7 +57,7 @@ if (isProd) {
     config = merge(config, {
         plugins: [
             new webpack.optimize.UglifyJsPlugin({
-                compress: { warnings: false }
+                compress: { warnings: false },
             }),
             new webpack.optimize.DedupePlugin(),
             new webpack.optimize.AggressiveMergingPlugin()
@@ -62,7 +69,7 @@ if (isProd) {
 const counterConf = () => {
     const base = path.join(process.cwd(), 'docs/example/counter/');
     return merge({}, config, {
-        entry: [path.join(base, 'index.js'), path.join(base, 'index.scss')],
+        entry: [path.join(base, 'index.tsx'), path.join(base, 'index.scss')],
         output: {
             path: base,
             filename: 'bundle.js'

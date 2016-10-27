@@ -1,0 +1,41 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "es6",
+        "outDir": "./compiled",
+        "lib": [
+            "dom",
+            "es2017"
+        ],
+        "allowSyntheticDefaultImports": false,
+        "strictNullChecks": true,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitUseStrict": false,
+        "noEmitOnError": true,
+        "sourceMap": true,
+        "forceConsistentCasingInFileNames": true,
+        "traceResolution": false,
+        "listFiles": false,
+        "stripInternal": true,
+        "skipDefaultLibCheck": true,
+        "skipLibCheck": false,
+        "pretty": true
+    },
+    "typeRoots": [
+        "../node_modules/@types"
+    ],
+    "include": [
+        "../types/*.d.ts",
+        "./**/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "docs"
+    ]
+}

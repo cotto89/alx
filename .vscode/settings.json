@@ -1,0 +1,14 @@
+{
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "eslint.enable": false,
+    "tslint.exclude": [
+        "docs/**/*bundle.ts"
+    ],
+    "javascript.validate.enable": true,
+    "files.exclude": {
+        // "node_modules": false,
+        "**/dist/**": false,
+        "**/*.d.ts": false,
+        "typings": false
+    }
+}

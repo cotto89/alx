@@ -1,0 +1,41 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "es6",
+        "outDir": "dist",
+        "declaration": true,
+        "lib": [
+            "dom",
+            "es2017"
+        ],
+        "jsx": "react",
+        "allowSyntheticDefaultImports": false,
+        "strictNullChecks": true,
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitUseStrict": false,
+        "noEmitOnError": true,
+        "sourceMap": true,
+        "forceConsistentCasingInFileNames": true,
+        "traceResolution": false,
+        "listFiles": false,
+        "stripInternal": true,
+        "skipDefaultLibCheck": true,
+        "skipLibCheck": false,
+        "pretty": true
+    },
+    "include": [
+        "index.ts",
+        "./types/*.d.ts",
+        "./lib/**/*.ts",
+        "./docs/example/counter/*.tsx"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

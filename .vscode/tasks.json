@@ -1,0 +1,62 @@
+{
+    "version": "0.1.0",
+    "command": "sh",
+    "isShellCommand": true,
+    "showOutput": "always",
+    "echoCommand": true,
+    "suppressTaskName": true,
+    "args": [
+        "-c"
+    ],
+    "tasks": [
+        {
+            "taskName": "Output TypeScript to console",
+            "args": [
+                "ts-node ${file}"
+            ],
+            "isBuildCommand": true
+        },
+        {
+            "taskName": "watch:example",
+            "args": [
+                "npm run watch:example"
+            ]
+        },
+        {
+            "taskName": "build:example",
+            "args": [
+                "npm run build:example"
+            ]
+        },
+        {
+            "taskName": "watch:dist",
+            "args": [
+                "npm run watch:dist"
+            ]
+        },
+        {
+            "taskName": "build:dist",
+            "args": [
+                "npm run build:dist"
+            ]
+        },
+        {
+            "taskName": "build:test",
+            "args": [
+                "npm run build:test"
+            ]
+        },
+        {
+            "taskName": "clean",
+            "args": [
+                "npm run clean"
+            ]
+        },
+        {
+            "taskName": "test",
+            "args": [
+                "npm run test"
+            ]
+        }
+    ]
+}
