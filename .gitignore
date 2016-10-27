@@ -40,7 +40,6 @@ jspm_packages
 ### Code ###
 # Visual Studio Code - https://code.visualstudio.com/
 .settings/
-.vscode/
 jsconfig.json
 
 ### typings ###
