@@ -1,62 +1,70 @@
 import sinon = require("sinon");
-import { compose } from "./../lib/compose";
+import { UseCase } from "./../lib/UseCase";
 
-export interface IStatus {
-    counterA: { count: number };
-    counterB: { count: number };
+export interface Status {
+    counterA: CounterA;
+    counterB: CounterB;
 }
 
-export const initialStatus = (): IStatus => ({
+export interface CounterA {
+    count: number;
+}
+
+export interface CounterB {
+    count: number;
+}
+
+const { compose } = UseCase.initialize<Status>();
+
+export const initialStatus = (): Status => ({
     counterA: { count: 0 },
     counterB: { count: 0 },
 });
 
 /* UseCase */
-export const increment = compose<IStatus, { count: number }, number>
-    ("INCREMENT", {
-        action: sinon.spy((count = 1) => ({ count })),
+export const increment = compose<number, { count: number }>((u) => {
+    u.id = "INCREMENT";
+    u.action = (count: number = 1) => ({ count });
+    u.reducer = (status, payload) => ({
+        counterA: { count: status.counterA.count + payload.count },
+        counterB: { count: (status.counterB.count + payload.count) * 10 },
+    });
+});
 
-        reducer: sinon.spy(({ counterA, counterB}: any, payload: any) => ({
-            counterA: { count: counterA.count + payload.count },
-            counterB: { count: (counterB.count + payload.count) * 10 },
-        })),
+export const incrementByReducers = compose<number, { count: number }>((u) => {
+    u.id = "INCREMENT";
+    u.action = (count: number = 1) => ({ count });
+
+    const spy = sinon.spy(function (state: any, payload: any) {
+        return {
+            count: state.count + payload.count,
+        };
     });
 
-export const incrementByReducers = compose<IStatus, { count: number }, number>
-    ("INCREMENT", {
-        action: (count = 1) => ({ count }),
+    u.reducers = {
+        counterA: spy,
+    };
+});
 
-        reducers: {
-            counterA: ({ counterA }, payload) => ({
-                count: counterA.count + payload.count,
-            }),
-        },
+export const incrementByMix = compose<number, { count: number }>((u) => {
+    u.id = "INCREMENT";
+    u.action = (count: number = 1) => ({ count });
+    u.reducer = (status, payload) => ({
+        counterA: { count: status.counterA.count + payload.count },
+        counterB: { count: (status.counterA.count + payload.count) * 5 },
     });
-
-export const incrementByMix = compose<IStatus, { count: number }, number>
-    ("INCREMENT", {
-        action: (count = 1) => ({ count }),
-
-        reducer: ({counterA, counterB}, payload) => ({
-            counterA: { count: counterA.count + payload.count },
-            counterB: { count: (counterB.count + payload.count) * 10 },
+    u.reducers = {
+        counterB: (state, payload) => ({
+            count: ((state as CounterB).count + payload.count) * 100,
         }),
+    };
+});
 
-        reducers: {
-            counterB: ({ counterB }, payload) => ({
-                count: (counterB.count + payload.count) * 10,
-            }),
-        },
+export const incrementByAsyncAction = compose<number, { count: number }>((u) => {
+    u.id = "INCREMENT";
+    u.action = (count: number = 1) => Promise.resolve({ count });
+    u.reducer = (status, payload) => ({
+        counterA: { count: status.counterA.count + payload.count },
+        counterB: { count: (status.counterA.count + payload.count) * 10 },
     });
-
-export const incrementByAsyncAction = compose<IStatus, { count: number }, number>
-    ("INCREMENT", {
-        action: (count = 1) => new Promise((resolve) => {
-            resolve({ count });
-        }),
-
-        reducer: ({counterA, counterB}, payload) => ({
-            counterA: { count: counterA.count + payload.count },
-            counterB: { count: (counterB.count + payload.count) * 10 },
-        }),
-    });
+});

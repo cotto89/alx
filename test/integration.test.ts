@@ -1,11 +1,12 @@
 import test from "ava";
 import sinon = require("sinon");
-import { compose, Dispatcher } from "./../index";
+import { UseCase, Dispatcher } from "./../index";
+
 
 test("counter", async (t) => {
     t.plan(4);
 
-    interface IStatus {
+    interface Status {
         counter: { count: number };
     }
 
@@ -13,15 +14,17 @@ test("counter", async (t) => {
         counter: { count: 0 },
     };
 
-    let dispatcher = new Dispatcher<IStatus>();
+    let dispatcher = new Dispatcher<Status>();
+
+    const { compose } = UseCase.initialize<Status>();
 
     const spyReducer = sinon.spy((status: any, payload: any) => ({
         counter: { count: status.counter.count + payload.count },
     }));
 
-    const increment = compose<IStatus, { count: number }, number>("increment", {
-        action: (count: number = 1) => ({ count }),
-        reducer: spyReducer,
+    const increment = compose<number, { count: number }>((u) => {
+        u.action = (count: number = 1) => ({ count });
+        u.reducer = spyReducer;
     });
 
     dispatcher.subscribe("USECASE:ACTION", ({ usecase, payload }) => {

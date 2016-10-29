@@ -3,15 +3,15 @@ import sinon = require("sinon");
 import { Dispatcher, EVENTS } from "./../lib/Dispatcher";
 import { UseCase } from "./../lib/UseCase";
 import {
-    IStatus,
+    Status,
     initialStatus,
     incrementByMix,
 } from "./fixtures";
 
-let dispatcher: Dispatcher<IStatus>;
+let dispatcher: Dispatcher<Status>;
 
 test.beforeEach(() => {
-    dispatcher = new Dispatcher<IStatus>();
+    dispatcher = new Dispatcher<Status>();
 });
 
 test("subscribe/unsubscribe", (t) => {
@@ -52,7 +52,7 @@ test("dispatch", async (t) => {
         const nextStatus = usecase.reduce(status, payload);
         t.deepEqual(nextStatus, {
             counterA: { count: 1 },
-            counterB: { count: 10 },
+            counterB: { count: 100 },
         });
     });
 
@@ -63,7 +63,7 @@ test("dispatch", async (t) => {
 
 test("dispatch and error", async (t) => {
     const spy = sinon.spy();
-    const usecase = new UseCase("demo", {
+    const usecase = new UseCase({
         action: () => Promise.reject(new Error("error!")),
     });
 

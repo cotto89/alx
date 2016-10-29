@@ -10,9 +10,3 @@ declare module "lodash.merge" {
     namespace merge { } // import * as merge from ...を可能にする
     export = merge
 }
-
-declare module "lodash.isplainobject" {
-    function isPlainObject(value: any): boolean
-    namespace isPlainObject { }
-    export = isPlainObject
-}
