@@ -1,19 +1,22 @@
 "use strict";
 const merge = require("lodash.merge");
+/**
+ * @export
+ * @class UseCase
+ * @template TStatus
+ * @template TPayload
+ */
 class UseCase {
     /**
      * Creates an instance of UseCase.
      *
-     * @param {(string | UseCaseOptions<TStatus, TPayload>)} [id]
      * @param {UseCaseOptions<TStatus, TPayload>} [options={}]
      *
      * @memberOf UseCase
      */
-    constructor(id, options = {}) {
-        const $id = typeof id === "string" ? id : undefined;
-        const $options = $id ? options : id || {};
-        const { action, reducer, reducers, chain } = $options;
-        this.id = $id || $options.id;
+    constructor(options = {}) {
+        const { id, action, reducer, reducers, chain } = options;
+        this.id = id;
         this.action = action || function defaultAction() {
             return undefined;
         };
@@ -30,21 +33,6 @@ class UseCase {
             ;
             return [];
         })();
-    }
-    /**
-     * Clone an instance of UseCase
-     *
-     * @static
-     * @template TStatus
-     * @template TPayload
-     * @param {UseCase<TStatus, TPayload>} usecase
-     * @param {...UseCaseOptions<TStatus, TPayload>[]} options
-     * @returns {UseCase<TStatus, TPayload>}
-     *
-     * @memberOf UseCase
-     */
-    static clone(usecase, ...options) {
-        return merge(new UseCase(), {}, usecase, ...options);
     }
     /**
      * Execute Action
@@ -73,14 +61,15 @@ class UseCase {
      */
     reduce(status, payload) {
         const { reducer, reducers } = this;
+        const currentStatus = status;
         const nextStatus = {};
-        const preNextStatus = reducer ? reducer(status, payload) : status;
+        const preNextStatus = reducer ? reducer(currentStatus, payload) : status;
         if (!reducers) {
             return preNextStatus;
         }
         Object.keys(preNextStatus).forEach((ctx) => {
             if (reducers[ctx]) {
-                nextStatus[ctx] = reducers[ctx](status, payload);
+                nextStatus[ctx] = reducers[ctx](currentStatus[ctx], payload);
             }
             else {
                 nextStatus[ctx] = preNextStatus[ctx];
@@ -89,27 +78,16 @@ class UseCase {
         return nextStatus;
     }
     /**
-     * Attach chain to target usecase
-     *
-     * @param {...Chain[]} chain
-     * @returns {UseCase<TStatus, TPayload>}
-     *
-     * @memberOf UseCase
-     */
-    link(...chain) {
-        return UseCase.clone(this, { chain: [...chain] });
-    }
-    /**
      * Execute chain
      *
      * @param {TPayload} payload
      * @param {Function} getStatus
-     * @param {Function} dispach
+     * @param {Function} dispatch
      * @returns {void}
      *
      * @memberOf UseCase
      */
-    next(payload, getStatus, dispach) {
+    next(payload, getStatus, dispatch) {
         if (this.chain.length < 1) {
             return;
         }
@@ -119,7 +97,7 @@ class UseCase {
             if (!generator || typeof generator !== "function") {
                 return;
             }
-            const g = generator(payload, getStatus, dispach);
+            const g = generator({ payload, getStatus, dispatch });
             if (!g || !g.next || typeof g.next !== "function") {
                 return handleGen(gens.shift());
             }
@@ -140,4 +118,69 @@ class UseCase {
     }
 }
 exports.UseCase = UseCase;
+/* ==============================
+# static
+=================================*/
+/**
+ * Create an utile function that Usecase wrapper
+ *
+ * @static
+ * @template TStatus
+ * @returns Function
+ *
+ * @memberOf UseCase
+ */
+UseCase.initialize = function initialize() {
+    /**
+     * Attach chain function(s) to target usecase
+     *
+     * @template TPayload
+     * @template TActionArgs
+     * @param {Compound<TStatus, TPayload, TActionArgs>} compound
+     * @param {...Chain<TPayload>[]} chain
+     * @returns
+     */
+    function link(compound, ...chain) {
+        const $options = merge({}, compound.usecase, { chain: [...chain] });
+        return compose($options);
+    }
+    /**
+     * Clone usecase
+     *
+     * @template TPayload
+     * @template TActionArgs
+     * @param {Compound<TStatus, TPayload, TActionArgs>} compound
+     * @param {...UseCaseOptions<TStatus, TPayload>[]} options
+     * @returns
+     */
+    function clone(compound, ...options) {
+        const $options = merge(new UseCase(), {}, compound.usecase, ...options);
+        return compose($options);
+    }
+    /**
+     * Compose usecase
+     *
+     * @template TPayload
+     * @template TActionArgs
+     * @param {Options<TStatus, TPayload>} [options]
+     * @returns {Compound<TStatus, TPayload, TActionArgs>}
+     */
+    function compose(options) {
+        let finalOptions = {};
+        if (typeof options === "object") {
+            finalOptions = options;
+        }
+        if (typeof options === "function") {
+            options(finalOptions);
+        }
+        let instance = new UseCase(finalOptions);
+        let f = function execAction(actionArgs) {
+            return instance.exec(actionArgs);
+        };
+        f.usecase = instance;
+        let compound = f;
+        return compound;
+    }
+    return { compose, link, clone };
+};
 //# sourceMappingURL=UseCase.js.map

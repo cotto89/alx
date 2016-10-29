@@ -10,12 +10,12 @@
             true,
             {
                 "order": [
-                    "public-static-method",
-                    "protected-static-method",
-                    "private-static-method",
                     "public-static-field",
                     "protected-static-field",
                     "private-static-field",
+                    "public-static-method",
+                    "protected-static-method",
+                    "private-static-method",
                     "public-instance-field",
                     "protected-instance-field",
                     "private-instance-field",

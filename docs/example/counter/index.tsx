@@ -1,51 +1,63 @@
 import * as React from "react";
 import { render } from "react-dom";
-import { Dispatcher, compose } from "./../../../index";
+import { Dispatcher, UseCase, Chain } from "./../../../index";
 
 /* Status */
 interface Status {
-    counter: { count: number };
+    counter: CounterState;
+}
+
+interface CounterState {
+    count: number;
 }
 
 /* Dispatcher */
 const dispatcher = new Dispatcher<Status>();
-const dispach = dispatcher.dispatch.bind(dispatcher);
+const dispatch = dispatcher.dispatch.bind(dispatcher);
+
+/* UseCase initilize */
+const { compose, link } = UseCase.initialize<Status>();
 
 /* UseCase and Chain */
-const reset = compose("RESET", {
-    reducer: () => ({
-        counter: { count: 0 },
-    }),
+const reset = compose((u) => {
+    u.id = "RESET";
+    u.reducer = () => ({ counter: { count: 0 } });
 });
 
-const resetChain = function* resetChain(_payload: any, getStatus: Function, dispatch: Function) {
-    const {count} = getStatus("counter");
+const resetChain: Chain<{ count: number }> = function* resetChain({ getStatus, dispatch }) {
+    const { count } = getStatus("counter");
     if (count > 100 || count < -100) {
         yield dispatch(reset());
     }
 };
 
-const increment = compose<Status, { count: number }, number>
-    ("INCREMENT", {
-        action: (count: number = 1) => ({ count }),
-        reducer: (status, payload) => ({
-            counter: { count: status.counter.count + payload.count },
-        }),
-        chain: resetChain,
+const increment = compose<number, { count: number }>((u) => {
+    u.id = "INCREMENT";
+    u.action = (count: number = 1) => ({ count });
+    u.reducer = (status, payload) => ({
+        counter: { count: status.counter.count + payload.count },
     });
+    u.chain = [resetChain];
+});
 
-const decrement = compose<Status, { count: number }, number>
-    ("DECREMENT", {
-        action: (count: number = 1) => ({ count }),
-        // reducer: (status, payload) => ({
-        //     counter: { count: status.counter.count - payload.count },
-        // }),
-        reducers: {
-            counter: (status, payload) => ({
-                count: status.counter.count - payload.count,
-            }),
-        },
-    }).link(resetChain);
+
+const decrementDefault = compose<number, { count: number }>((u) => {
+    u.id = "DECREMENT";
+    u.action = (count: number = 1) => ({ count });
+
+    // u.reducer = (status, payload) => ({
+    //     counter: { count: status.counter.count - payload.count },
+    // });
+
+    u.reducers = {
+        counter: (state, payload) => ({
+            count: (state as CounterState).count - payload.count,
+        }),
+    };
+});
+
+const decrement = link(decrementDefault, resetChain);
+
 
 /* View */
 class Counter extends React.Component<{}, Status> {
@@ -61,10 +73,10 @@ class Counter extends React.Component<{}, Status> {
         return context ? status[context] : status;
     };
 
-    up = () => dispach(increment(1));
-    up10 = () => dispach(increment(10));
-    down = () => dispach(decrement(1));
-    down10 = () => dispach(decrement(10));
+    up = () => dispatch(increment(1));
+    up10 = () => dispatch(increment(10));
+    down = () => dispatch(decrement(1));
+    down10 = () => dispatch(decrement(10));
 
     componentDidMount() {
         dispatcher.subscribe("USECASE:ACTION", ({ usecase, payload }) => {
@@ -75,7 +87,7 @@ class Counter extends React.Component<{}, Status> {
             console.info(usecase.id, payload, this.state.counter);
 
             // next
-            usecase.next(payload, this.getStatus, dispach);
+            usecase.next(payload, this.getStatus, dispatch);
         });
 
         dispatcher.subscribe("ERROR", (error) => {
