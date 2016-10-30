@@ -1,7 +1,7 @@
 {
   "name": "alx",
-  "description": "flux framework",
-  "version": "0.0.3",
+  "description": "flux implementation",
+  "version": "0.0.4",
   "author": "cotto",
   "ava": {
     "files": [
@@ -53,14 +53,15 @@
     "webpack-notifier": "^1.4.1"
   },
   "files": [
-    "index.js",
-    "lib"
+    "dist",
+    "README.md",
+    "LICENCE"
   ],
   "keywords": [
     "flux"
   ],
   "license": "MIT",
-  "main": "index.js",
+  "main": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/cotto89/alx.git"
