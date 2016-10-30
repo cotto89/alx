@@ -1,136 +1,217 @@
 # API
-
-* [`UseCase`](#usecase)
-	+ [`UseCase.compose(actionType, options)`](#usecasecomposeactiontype-options)
-	+ [`UseCase.clone(usecase, ...options)`](#usecasecloneusecase-options)
-	+ [`UseCase#link(...chain)`](#usecaselinkchain)
-	+ [`UseCase#exec(...actionArgs)`](#usecaseexecactionargs)
-	+ [`UseCase#reduce(status, payload)`](#usecasereducestatus-payload)
-	+ [`UseCase#next(payload, getStatus, emit)`](#usecasenextpayload-getstatus-emit)
-* [`ActionEmitter`](#actionemitter)
-	+ [`ActionEmitter#emit(usecase, actionArgs)`](#actionemitteremitusecase-actionargs)
-	+ [`ActionEitter#on(event, callback)`](#actioneitteronevent-callback)
+- [API](#api)
+  * [`UseCase`](#usecase)
+    + [`UseCase.initialize<TStatus>()`](#usecaseinitializetstatus)
+      - [`compose<TActionArgs, TPayload>(options?: ComposeOption)`](#composetactionargs-tpayloadoptions-composeoption)
+      - [`link<TActionArgs, TPayload>(compound: Compound, ...chain: Chain<TPayload>[])`](#linktactionargs-tpayloadcompound-compound-chain-chaintpayload)
+      - [`clone<TActionArgs, TPayload>(compound: Compound<TStatus, TPayload, TActionArgs>, ...options: UseCaseOptions<TStatus, TPayload>[])`](#clonetactionargs-tpayloadcompound-compoundtstatus-tpayload-tactionargs-options-usecaseoptionststatus-tpayload)
+    + [`UseCase#exec<TActionArgs>(actionArgs?: TActionArgs)`](#usecase%23exectactionargsactionargs-tactionargs)
+    + [`UseCase#reduce(status: TStatus, payload: TPayload)`](#usecase%23reducestatus-tstatus-payload-tpayload)
+    + [`UseCase#next(payload: TPayload, getStatus: Function, dispatch: Function): void`](#usecase%23nextpayload-tpayload-getstatus-function-dispatch-function-void)
+  * [`Dispatcher`](#dispatcher)
+    + [`Dipatcher#subscribe(event: "USECASE:ACTION" | "ERROR", listener)`](#dipatcher%23subscribeevent-usecaseaction--error-listener)
+    + [`Dispatcher#dispatch(actionResult: any)`](#dispatcher%23dispatchactionresult-any)
 
 ## `UseCase`
 
-### `UseCase.compose(actionType, options)`
+### `UseCase.initialize<TStatus>()`
 
-Create an instance of `UseCase`. This is alias of `UseCase` constructor.
+Initialize UseCase and return helper methods.
 
-| args               | type                  | required |
-| ------------------ | --------------------- | -------- |
-| `actionType`       | `string`              |          |
-| `options.action`   | `Function`            |          |
-| `options.reducer`  | `Function`            |          |
-| `options.reducers` | `Object`              |          |
-| `options.chain`    | `Function|Function[]` |          |
+##### returns `compose()`, `link()`, `clone()`
 
--   **`actionType`** became a `payload.$type`
--   **`options.action`** must return payload. Payload must be plain object.
--   **`options.reducer`** must be synchronously implementation. Return completed status as next status.
--   **`options.reducers`** must be synchronously. It have only to return own context state as next state on context.
--   **`options.chain`** is implemented synchronously.
+#### example
 
-**Return:** instance of `UseCase`.
+```js
+import { UseCase } from "alx"
 
-### `UseCase.clone(usecase, ...options)`
+interface Status {
+	counter: { count: number }
+}
 
-Clone `usecase`.
+const { compose, link, clone } = UseCase.initialize<Status>()
+```
 
-| args      | type      | required |
-| --------- | --------- | -------- |
-| `usecase` | `UseCase` | true     |
-| `options` | `Object`  |          |
+#### `compose<TActionArgs, TPayload>(options?: ComposeOption)`
 
--   **`usecase`** is instance of `UseCase`
--   **`options`** is the same of `UseCase.compose`
+Compose UseCase.
 
-**Return**: instance of UseCase.
+##### returns
 
-### `UseCase#link(...chain)`
+`Compound<TStatus, TPayload, TActionArgs>`
 
-Link chain to usecase. usecase is cloned.
 
-| args    | type       | required |
-| ------- | ---------- | -------- |
-| `chain` | `Function` | true     |
+##### type: `ComposeOptions`
 
-**Return:** instance of `UseCase`.
+```ts
+type ComposeOptions<TStatus, TPayload> =
+    ((usecase: UseCaseOptions<TStatus, TPayload>) => void)
+    | UseCaseOptions<TStatus, TPayload>
+```
 
-### `UseCase#exec(...actionArgs)`
+##### type: `UseCaseOptions`
 
-Implement `usecase.action`.
+```ts
+interface UseCaseOptions<TStatus, TPayload> {
+    id?: string;
+    action?: (...args: any[]) => any;
+    reducer?: (status: TStatus, payload: TPayload) => TStatus;
+    reducers?: {
+        [context: string]: (state: any, payload: TPayload) => any;
+    };
+    chain?: Chain<TPayload> | Chain<TPayload>[];
+}
+```
 
-| args         | type  | required |
-| ------------ | ----- | -------- |
-| `actionArgs` | `any` |          |
+##### type: `Compoud`
 
-**Return:** `Promise { payload }`
+```ts
+interface Compound<TStatus, TPayload, TActionArgs> {
+    (actionArgs?: TActionArgs): Promise<{ payload: TPayload, usecase: UseCase<TStatus, TPayload> }>;
+    usecase: UseCase<TStatus, TPayload>;
+}
+```
 
-### `UseCase#reduce(status, payload)`
+##### example
 
-Implement `usecase.reducer(s)`.
+```ts
+const increment = compose<number, {count: number}>((u) => {
+	u.action = (count: number = 1) => ({ count });
+	u.reducer = (status, payload) => ({
+		counter: { count: status.counter.count + payload.count }
+	})
+})
+```
 
-| args      | type     | required |
-| --------- | -------- | -------- |
-| `status`  | `Object` | true     |
-| `payload` | `Object` | true     |
+#### `link<TActionArgs, TPayload>(compound: Compound, ...chain: Chain<TPayload>[])`
 
-**Return:** `Object` as nextStatus.
+Attach chian function to target usecase.
 
-### `UseCase#next(payload, getStatus, emit)`
+##### returns
 
-Implement `usecase.chain`. Chain functions are implemented asynchronously.
+`Compound<TStatus, TPayload, TActionArgs>`
 
-| args        | type       | required |
-| ----------- | ---------- | -------- |
-| `payload`   | `Object`   | true     |
-| `getStatus` | `Function` | true     |
-| `emit`      | `Function` | true     |
+##### type Chain
+
+```ts
+type Chain<TPayload> = {
+    ({payload, getStatus, dispatch }: {
+        payload: TPayload,
+        getStatus: Function,
+        dispatch: Function
+    }): any;
+}
+```
+
+##### example
+
+```ts
+// usecase
+const reset = compose((u) => {
+	u.id = "RESET";
+	u.reduer = () => ({ counter: { count: 0 } })
+})
+
+// chain function
+funciton* resetChain({ getStatus, dispatch }) {
+	const {count} = getStatus("counter");
+	if (count > 100 || count < -100) {
+		yield dispatch(reset())
+	}
+}
+
+// attach chian
+const incrementWithReset = link(increment, resetChain)
+
+```
+
+
+#### `clone<TActionArgs, TPayload>(compound: Compound<TStatus, TPayload, TActionArgs>, ...options: UseCaseOptions<TStatus, TPayload>[])`
+
+Clone target usecase and merge options.
+
+##### return
+
+`Compound<TStatus, TPayload, TActionArgs>`
+
+##### example
+
+```ts
+const increment2 = clone(increment, {
+	id: "INCREMENT2"
+})
+```
+
+
+### `UseCase#exec<TActionArgs>(actionArgs?: TActionArgs)`
+
+Execute `usecase.action`.
+
+##### Returns
+
+`Promise<{ payload: TPayload; usecase: UseCase<TStatus, TPayload> }`
+
+
+### `UseCase#reduce(status: TStatus, payload: TPayload)`
+
+##### Returns
+
+`TStatus`
+
+### `UseCase#next(payload: TPayload, getStatus: Function, dispatch: Function): void`
 
 -   **`getStatus`**: Alx does not provide store. So you need to implement suitably `getStatus` function.
--   **`emit`**: `ActionEmitter#emit`
+-   **`dispatch`**: `Dispatcher#dispatch`
 
-## `ActionEmitter`
 
-### `ActionEmitter#emit(usecase, actionArgs)`
 
-Impliment `UseCase#exec` and publish `USECASE:ACTION` or `ERROR`.
+## `Dispatcher`
 
-| args         | type      | required |
-| ------------ | --------- | -------- |
-| `usecase`    | `UseCase` | true     |
-| `actionArgs` | `any`     |          |
+### `Dipatcher#subscribe(event: "USECASE:ACTION" | "ERROR", listener)`
 
-**Return**: `Promise{ usecase, payload }`
+##### returns
 
-### `ActionEitter#on(event, callback)`
+`unsubscribe: Function`
 
-Subscribe `USECASE:ACTION` or `ERROR` event.
+##### listener
 
-| args       | type       | required |
-| ---------- | ---------- | -------- |
-| `event`    | `string`   | true     |
-| `callback` | `Function` |          |
+###### `USECASE:ACTION`
 
-#### callback arguments
+```ts
+listener: (result: { usecase: UseCase<TStatus, any>, payload: any;}) => any
+```
 
-##### `USECASE:ACTION`
+###### `ERROR`
 
-| args      | type      |
-| --------- | --------- |
-| `usecase` | `UseCase` |
-| `payload` | `Object`  |
+```ts
+listener: (error: Error) => any
+```
 
-##### `ERROR`
+##### example
 
-| args    | type    |
-| ------- | ------- |
-| `error` | `Error` |
+```ts
+const { Dispatcher } from "alx";
 
-ActionEmitter is extened [EventEmitter][link:eventemitter]. If you want to more API infomation, See <https://nodejs.org/api/events.html>
+const dispatcher = new Dispatcher<Status>();
 
-[link:eventemitter]: https://nodejs.org/api/events.html
+
+// subscribe
+const unsubscribe = dispatcher.subscribe("USECASE:ACTION", ({ usecase, payload }) => {
+	...
+})
+
+// unsubscribe
+unsubscribe();
+```
+
+### `Dispatcher#dispatch(actionResult: any)`
+
+##### returns
+
+```ts
+ Promise<{ usecase: UseCase<TStatus, TPayload>, payload: TPayload }>
+```
+
 
 
 

@@ -2,16 +2,16 @@
 
 Simple flux implementation.
 
-Alx provides only `ActionEmitter` and `UseCase` module. `ActionEmitter` is a `EventEmitter` for Alx. `UseCase` is a logic component included `action`, `reducer` and next process named `chain`.
+Alx provides only `Dispatcher` and `UseCase` module. `Dispatcher` is like a `EventEmitter` for Alx. `UseCase` is a logic component included `action`, `reducer(s)` and next process named `chain`.
 
-**Alx does not provide `Store`**. You can impletemt store what you want to.
+**Alx does not provide `Store`**. You can impletemt store what you want.
 
 ## Table of Contents
 
 * [Installation](#installation)
 * [Example](#example)
 * [Usage](#usage)
-	+ [Words](#words)
+	+ [Terminologies](#terminologies)
 	+ [Basic](#basic)
 	+ [Advanced](#advanced)
 * [API][api-link]
@@ -22,7 +22,7 @@ Alx provides only `ActionEmitter` and `UseCase` module. `ActionEmitter` is a `Ev
 
 ## Example
 
--   [Counter][counter] [[src]][counter-src]
+-   [CounterApp][counter] [[src]][counter-src]
 
 [counter]: https://cotto89.github.io/alx/example/counter/
 
@@ -30,7 +30,7 @@ Alx provides only `ActionEmitter` and `UseCase` module. `ActionEmitter` is a `Ev
 
 ## Usage
 
-### Words
+### Terms
 
 -   **context**: Domain context of state.
 -   **status**: Set of state.
@@ -42,77 +42,89 @@ const status = {
 }
 ```
 
--   **payload**: Plain object returned by action.
 -   **action**: Function that return payload.
+-   **payload**: Something that returned from action.
 
 ```js
-function action() {
-	return { $type: 'ACTION' }
+function action(count = 1) {
+	return { count }
 }
 
 const payload = action();
 ```
 
--   **chain**: Generator function of next process depend on the usecase
+-   **usecase**: Component of action, reducer(s) and chain.
 -   **reducer**: Function that return next status.
 -   **reducers**: Function that return next state.
--   **usecase**: Component of action, reducer and chain.
+-   **chain**: Function of next process depend on the usecase
 
 ### Basic
 
+#### initialize
+
+```js
+import { UseCase } from "alx";
+// helper functions of UseCase
+const { compose, link, clone } = UseCase.initialize();
+```
+
 #### Create an `usecase`
 
-`UseCase` is a component of `action`, `reducer(s)` and `chain`. chain is next process depend on the usecase.
+`UseCase` is a component of `action`, `reducer(s)` and `chain`. chain is that next process depend on the usecase.
 
 ```js
-import { compse } from 'alx';
+import { UseCase } from "alx";
+
+const { compose, link, clone } = UseCase.initialize();
+
 
 /* usecase */
-const increment = compose('INCREMENT', {
-    action: (count = 1) => ({ count }),
-    reducer: (status, payload) => ({
+const increment = compose((u) => {
+	u.id = "INCREMENT";
+	u.action = (count = 1) => ({ count });
+	u.reducer = (status, payload) => ({
     	counter: { count: status.counter.count + payload.count }
-    })
-});
+    });
+})
+```
 
-/*
-// The same as above
+`compose` is a wrapper function of UseCaseClass.
+
+```js
+import assert from 'assert';
 import { UseCase } from 'alx';
 
-const increment = new UseCase('INCREMENT', {
-	...
-});
-*/
+assert(increment.usecase instanceof UseCase)
 ```
 
-#### Set up an `ActionEmitter`
+#### Set up an `Dispatcher`
 
-ActionEmitter is a extended EventEmitter for alx.
+Dispatcher is like a EventEmitter for alx.
 
 ```js
-import { ActionEmitter } from 'alx';
+import { Disptcher } from 'alx';
 
-const emitter  = new ActionEmitter();
-const emit = emitter.emit.bind(emitter);
+const dispatcher  = new Dispatcher();
+const dispatch = dispatcher.dispatch.bind(dispatcher);
 ```
 
-You can subsribe `'USECASE:ACTION'` and `'ERROR'` events of ActionEmitter.
+You can subsribe `'USECASE:ACTION'` or `'ERROR'` events from Dispatcher.
 
-ActionEmitter implement `usecase.action` and publish `usecase` and `payload` on `'USECASE:ACTION'` event.
+Dispatcher publishes `usecase` instance and `payload` on `'USECASE:ACTION'` event or `error` on `ERRPR` event.
 
 ```js
-emitter.on('USECASE:ACTION', (usecase, payload) => {
+dispatcher.subscribe('USECASE:ACTION', ({usecase, payload}) => {
 	...
 });
 
-emitter.on('ERROR', (error) => {
+dispatcher.subscribe('ERROR', (error) => {
     ...
 });
 ```
 
 #### Update Status
 
-For update status, You can use `UseCase#reduce` in `USECASE:ACTION` event handler of ActionEmitter. `UseCase#reduce` implement `usecase.reducer(s)` and return nextStatus.
+For update status, You can use `UseCase#reduce` in `USECASE:ACTION` event handler of Dispatcher. `UseCase#reduce` implements `usecase.reducer(s)` and return nextStatus.
 
 ```js
 /* initial status */
@@ -120,59 +132,63 @@ let status = {
     counter: { count: 0 }
 };
 
-emitter.on('USECASE:ACTION', (usecase, payload) => {
+dispatcher.subscribe('USECASE:ACTION', ({ usecase, payload }) => {
     const nextStatus = usecase.reduce(status, payload);
 
     assert.deepEqual(nextStatus, { counter: { count: 10 } });
-    assert.deepEqual(payload, { $type: 'INCREMENT', count: 10 });
-
+    assert.deepEqual(payload, { count: 10 });
+    assert(usecase.id === "INCREMENT");
 });
 ```
 
-Then emit usecase for update status.
-Pass usecase reference and action arguments to emit function.
+Then dispatch payload for update status.
 
 ```js
-emit(increment, 10)
+dispatch(increment(10))
 ```
 
 #### OverView
 
 ```js
 import assert from 'assert';
-import { compse, ActionEmitter } from 'alx';
+import { UseCase, Dispatcher } from 'alx';
+
 
 /* usecase */
-const increment = compose('INCREMENT', {
-    action: (count = 1) => ({ count }),
-    reducer: (status, payload) => ({
+const { comppse } = UseCase.initialize();
+
+const increment = compose((u) => {
+	u.id = "INCREMENT";
+	u.action = (count = 1) => ({ count });
+	u.reducer = (status, payload) => ({
     	counter: { count: status.counter.count + payload.count }
     });
 })
 
-/* ActionEmitter */
-const emitter  = new ActionEmitter();
-const emit = emitter.emit.bind(emitter);
+/* Dispatcher */
+const dispatcher  = new Dispatcher();
+const dispatch = dispatcher.dispatch.bind(dispatcher);
 
 /* initial status */
 let status = {
 	counter: { count: 0 }
 };
 
-/* listen emitter */
-emitter.on('USECASE:ACTION', (usecase, payload) => {
+/* listen dispatcher */
+dispatcher.subscribe('USECASE:ACTION', ({ usecase, payload }) => {
 	const nextStatus = usecase.reduce(status, payload);
 
 	assert.deepEqual(status, { counter: { count: 10 } });
-	assert.deepEqual(payload, { $type: 'INCREMENT', count: 10 });
+	assert.deepEqual(payload, { count: 10 });
+	assert(usecase.id === "INCREMENT");
 });
 
-emitter.on('ERROR', (error) => {
+disptcher.subscribe('ERROR', (error) => {
 	console.error(error)
 });
 
 /* emit usecase */
-emit(increment, 10);
+disptch(increment(1));
 ```
 
 ### Advanced
@@ -206,9 +222,10 @@ const increment = compose('INCREMENT', {
 `action` can return Promise directly.
 
 ```js
-const increment = compose('INCREMENT', {
-    action: (count = 1) => Promise.resolve({ count }),
-    reducer: (status, payload) => ({
+const increment = compose((u) => {
+	u.id = "INCREMENT";
+	u.action = (count = 1) => Promise.resolve({ count });
+	u.reducer = (status, payload) => ({
     	counter: { count: status.counter.count + payload.count }
     });
 })
@@ -218,46 +235,49 @@ const increment = compose('INCREMENT', {
 
 Create usecase and chain function. `Chain` is next process depend on the usecase.
 
-Chain function must use **Generator function**.
+`Chain` can use `GeneratorFunction`. I recommend to use `GeneratorFunciton`. It let debugging to easy.
 
 ```js
 /* usecase */
-const reset = compose('RESET', {
-    reducer: () => ({ counter: { count: 0 } })
+const reset = compose((u) => {
+    u.id = "RESET";
+    u.reducer = () => ({ counter: { count: 0 } });
 });
 
-/* chain */
-const resetChain = function* (getStatus, emit, payload) {
-	const count = getStatus('counter').count;
+const resetChain = function* resetChain({ getStatus, dispatch }) {
+    const { count } = getStatus("counter");
     if (count > 100 || count < -100) {
-        yield emit(reset);
+        yield dispatch(reset());
     }
-}
+};
 ```
 
 Apply chain. `usecase.chain` accept Array of Function or Function.
 
 ```js
 // chain property
-const increment = compose('INCREMENT', {
+const increment = compose((u) => {
+	u.id = "INCREMENT";
 	...
-    chain: resetChain // or [resetChain]
+	u.chain = resetChain // or [resetChain]
 })
 ```
 
-The same as above, `UseCase#link` can add chain to the `usecase.chain`. It also accept multiple chain function like `usecase.link(fnA, fnB, fnC)` or `usecase.link(fnA).link(fnB).link(fnC)`.
+
+
+The same as above, `link()` helper that initialized by UseCase can add chain to the `usecase.chain`. It also accept multiple chain function like `link(increment, chain, chain)`.
 
 ```js
-// UseCase#link
-const increment = compose('INCREMENT', {...}).link(resetChain)
+const { link } = UseCase.initialize();
+const incrementWithReset = link(increment, resetChain);
 ```
 
-`UseCase#next` implement chain. Chain functions are implemented async.
+`UseCase#next` implements chain. Chain functions are implemented asynchronous.
 
 ```js
 // UseCase#next
-emitter.on('USECASE:ACTION', (usecase, payload) => {
-   usecase.next(getStatus, emit, payload);
+dispatcher.subscribe('USECASE:ACTION', ({ usecase, payload }) => {
+   usecase.next(payload, getStatus, emit);
 });
 ```
 
@@ -265,40 +285,41 @@ Alx does not provide `store`. So you need to implement suitably `getStatus` func
 
 #### Pattern of UseCase
 
-##### Omit actionType
+##### Omit usecaseId
 
 ```js
-const usecase = compose({
-	action: () => ({...}),
-	reducer: () => ({...})
+const usecase = compose((u) => {
+	u.action = () => {...}
 })
 ```
 
-ActionType can omit. When omit actionType, `$type` of payload is `undefined` like `{ $type: undefined }` .
+UseCaseId can omit. When omit id , usecase.id is `undefined` by default.
 
-If you dont need `$type`, you omit actionType.
+If you dont need id, you omit id.
 
 ##### Omit action
 
 ```js
-const usecase = compose('SOMETHING', {
-	reducer: () => ({...})
+const usecase = compose((u) => {
+	u.id = "SUMETHING";
+	u.reducer = () => {...}
 })
 ```
 
-When omit `action`, generated action automaticaly and return payload like a `{ $type: 'SOMETHING' }`.
+When omit `action`, default action is setted automaticaly. default action will return `undefined` as payload.
 
 `action` can omit, if all reducer(s) dont need payload or action do not have a specific value.
 
 ##### Omit reducer(s)
 
 ```js
-const usecase = compose('SOMETHING', {
-	action: () => ({...})
+const usecase = compose((u) => {
+	u.id = "SUMETHING";
+	u.action = () => {...}
 })
 ```
 
-When omit `reducer(s)`, payload is published but status will not change.
+When omit `reducer(s)`, payload and usecaes is published but status will not change.
 
 This pattern is useful when You want only to link chain or want to publish event that dont change state for something.
 
