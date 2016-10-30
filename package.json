@@ -1,7 +1,7 @@
 {
   "name": "alx",
   "description": "flux implementation",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "author": "cotto",
   "ava": {
     "files": [
@@ -20,10 +20,10 @@
     "url": "https://github.com/cotto89/alx/issues"
   },
   "dependencies": {
+    "@types/node": "^6.0.46",
     "lodash.merge": "^4.6.0"
   },
   "devDependencies": {
-    "@types/node": "^6.0.46",
     "@types/react": "^0.14.43",
     "@types/react-dom": "^0.14.18",
     "@types/sinon": "^1.16.31",
@@ -83,5 +83,6 @@
     "watch:dist": "tsc -w",
     "watch:example": "webpack-dev-server",
     "watch:test": "npm-run-all build:test -p 'build:test -- -w' 'start:test -- -w'"
-  }
+  },
+  "types": "dist/index.d.ts"
 }
